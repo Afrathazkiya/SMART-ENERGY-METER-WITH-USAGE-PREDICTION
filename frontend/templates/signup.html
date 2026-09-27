@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartMeter — Create Account</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #03060d;
+      --panel:       #070d1a;
+      --card:        #0b1220;
+      --border:      rgba(100, 180, 255, 0.08);
+      --border-glow: rgba(34, 197, 94, 0.2);
+      --accent:      #22c55e;
+      --accent2:     #00d4ff;
+      --accent-dim:  rgba(34,197,94,0.08);
+      --text:        #e2eaf5;
+      --muted:       #4a6080;
+      --danger:      #ff4d6d;
+      --mono:        'JetBrains Mono', monospace;
+      --sans:        'Syne', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 60% at 85% 50%, rgba(34,197,94,0.04) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 70% at 15% 30%, rgba(0,212,255,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 80%, rgba(168,85,247,0.03) 0%, transparent 60%);
+    }
+
+    .scanlines {
+      position: fixed; inset: 0; z-index: 0;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(34,197,94,0.01) 2px, rgba(34,197,94,0.01) 4px
+      );
+      pointer-events: none;
+    }
+
+    .grid {
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(34,197,94,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 100%);
+    }
+
+    .orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(100px);
+      animation: float 14s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 500px; height: 500px; background: rgba(34,197,94,0.05);  top: -150px; right: -100px; animation-duration: 15s; }
+    .orb-2 { width: 380px; height: 380px; background: rgba(0,212,255,0.04);  bottom: -100px; left: -60px; animation-duration: 11s; animation-delay: -6s; }
+    .orb-3 { width: 220px; height: 220px; background: rgba(245,158,11,0.04); top: 35%; left: 30%; animation-duration: 19s; animation-delay: -3s; }
+
+    @keyframes float {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(35px, 22px) scale(1.05); }
+    }
+
+    /* ── Wrapper ── */
+    .wrapper {
+      position: relative; z-index: 1;
+      display: flex;
+      align-items: stretch;
+      width: 100%;
+      max-width: 980px;
+      min-height: 620px;
+      margin: 24px;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow:
+        0 0 0 1px rgba(34,197,94,0.03),
+        0 40px 100px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      animation: rise 0.6s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(28px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+
+    /* ── Form panel (left) ── */
+    .form-panel {
+      width: 100%; max-width: 450px;
+      background: var(--card);
+      padding: 52px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      order: 1;
+    }
+
+    .form-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.4;
+    }
+
+    .step-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--accent);
+      letter-spacing: 0.14em;
+      background: rgba(34,197,94,0.06);
+      border: 1px solid rgba(34,197,94,0.12);
+      border-radius: 100px;
+      padding: 5px 11px;
+      margin-bottom: 16px;
+    }
+
+    .blink {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.3; }
+    }
+
+    .form-head h2 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 6px;
+    }
+
+    .form-head p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    /* Banners */
+    .banner {
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .banner.show { display: flex; }
+    .banner.error {
+      background: rgba(255,77,109,0.08);
+      border: 1px solid rgba(255,77,109,0.2);
+      color: #ff8fa3;
+    }
+    .banner.success {
+      background: rgba(34,197,94,0.08);
+      border: 1px solid rgba(34,197,94,0.2);
+      color: #86efac;
+    }
+
+    /* Fields */
+    .field { margin-bottom: 16px; }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: #8aa0bb;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .field-wrap { position: relative; }
+
+    .field-wrap input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 14px;
+      font-family: var(--sans);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .field-wrap input::placeholder { color: #253545; }
+
+    .field-wrap input:focus {
+      border-color: rgba(34,197,94,0.3);
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.06);
+      background: rgba(34,197,94,0.015);
+    }
+
+    .field-wrap input.ok   { border-color: rgba(34,197,94,0.3); }
+    .field-wrap input.fail { border-color: rgba(255,77,109,0.3); }
+
+    .pw-toggle {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer; color: var(--muted);
+      font-size: 14px; padding: 4px; line-height: 1;
+      transition: color 0.15s;
+    }
+    .pw-toggle:hover { color: var(--text); }
+
+    /* Strength meter */
+    .strength { margin-top: 8px; }
+    .str-bar  { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 4px; }
+    .str-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0; }
+    .str-lbl  { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+    /* Terms */
+    .terms {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 12px; color: var(--muted);
+      margin-bottom: 18px; margin-top: 2px;
+      line-height: 1.5;
+    }
+    .terms input[type=checkbox] {
+      margin-top: 2px; flex-shrink: 0;
+      accent-color: var(--accent);
+      width: 14px; height: 14px;
+    }
+
+    /* Button */
+    .btn-create {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent) 0%, #17a34a 100%);
+      color: #030a14;
+      border: none; border-radius: 12px;
+      padding: 14px;
+      font-size: 15px; font-weight: 700;
+      font-family: var(--sans);
+      cursor: pointer;
+      margin-bottom: 22px;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      position: relative; overflow: hidden;
+      letter-spacing: 0.01em;
+      box-shadow: 0 4px 20px rgba(34,197,94,0.2);
+    }
+
+    .btn-create::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    }
+
+    .btn-create:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 30px rgba(34,197,94,0.28);
+    }
+    .btn-create:active:not(:disabled) { transform: scale(0.985); }
+    .btn-create:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+    .btn-create .spin {
+      display: none; width: 16px; height: 16px;
+      border: 2px solid rgba(3,10,20,0.25);
+      border-top-color: #030a14; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      position: absolute; right: 18px; top: 50%;
+      transform: translateY(-50%);
+    }
+    .btn-create.loading .spin { display: block; }
+    @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+    /* Sep */
+    .sep {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--muted); font-size: 11px;
+      letter-spacing: 0.06em; margin-bottom: 22px;
+    }
+    .sep::before, .sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .switch { text-align: center; font-size: 13px; color: var(--muted); }
+    .switch a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    .switch a:hover { text-decoration: underline; }
+
+    /* ── Info panel (right) ── */
+    .info-panel {
+      flex: 1;
+      background: linear-gradient(145deg, #050b12 0%, #060e14 50%, #050c0a 100%);
+      border-left: 1px solid var(--border);
+      padding: 52px 44px;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      order: 2;
+    }
+
+    .info-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; right: -60px;
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    @media (min-width: 780px) { .info-panel { display: flex; } }
+
+    .brand {
+      display: flex; align-items: center; gap: 16px;
+    }
+
+    .brand-mark {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05));
+      border: 1px solid rgba(34,197,94,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 0 20px rgba(34,197,94,0.1), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .brand-name {
+      font-family: var(--mono);
+      font-size: 17px; font-weight: 500;
+      color: var(--accent);
+    }
+
+    .brand-sub {
+      font-size: 10px; color: var(--muted);
+      letter-spacing: 0.1em; margin-top: 2px;
+    }
+
+    .info-tagline {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.2;
+      margin-bottom: 32px;
+    }
+
+    .info-tagline span { color: var(--accent2); }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 20px; margin-bottom: 32px; }
+
+    .step { display: flex; align-items: flex-start; gap: 16px; }
+
+    .step-num {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.08);
+      border: 1px solid rgba(34,197,94,0.18);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 10px; font-weight: 500;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-body h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .step-body p  { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .step-body code {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent2);
+      background: rgba(0,212,255,0.07);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    /* Security badge */
+    .sec-badge {
+      background: rgba(34,197,94,0.04);
+      border: 1px solid rgba(34,197,94,0.12);
+      border-radius: 12px;
+      padding: 16px 18px;
+      display: flex; align-items: center; gap: 14px;
+    }
+
+    .sec-icon { font-size: 26px; flex-shrink: 0; }
+    .sec-badge strong { font-size: 13px; color: var(--accent); display: block; margin-bottom: 4px; }
+    .sec-badge p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="scanlines"></div>
+<div class="grid"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="wrapper">
+
+  <!-- FORM PANEL (LEFT) -->
+  <div class="form-panel">
+    <div class="form-head">
+      <div class="step-tag"><span class="blink"></span>NEW ACCOUNT</div>
+      <h2>Create account</h2>
+      <p>Start monitoring your energy usage in seconds</p>
+    </div>
+
+    <div id="errBanner" class="banner error"><span>⚠</span><span id="errText"></span></div>
+    <div id="okBanner"  class="banner success"><span>✓</span><span id="okText"></span></div>
+
+    <div class="field">
+      <label for="name">Full Name</label>
+      <div class="field-wrap">
+        <input type="text" id="name" placeholder="Your Name" autocomplete="name">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="email">Email Address</label>
+      <div class="field-wrap">
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <div class="field-wrap">
+        <input type="password" id="password" placeholder="Min. 6 characters" autocomplete="new-password" oninput="checkStrength()">
+        <button class="pw-toggle" onclick="togglePw()" type="button">👁</button>
+      </div>
+      <div class="strength">
+        <div class="str-bar"><div class="str-fill" id="strFill"></div></div>
+        <span class="str-lbl" id="strLbl">Enter a password</span>
+      </div>
+    </div>
+
+    <div class="terms">
+      <input type="checkbox" id="agree">
+      <label for="agree">I agree to the terms of service and privacy policy for this local-only deployment.</label>
+    </div>
+
+    <button class="btn-create" id="createBtn" onclick="doSignup()">
+      Create Account
+      <div class="spin"></div>
+    </button>
+
+    <div class="sep">ALREADY REGISTERED</div>
+    <p class="switch"><a href="/auth/login">← Sign in to your account</a></p>
+  </div>
+
+  <!-- INFO PANEL (RIGHT) -->
+  <div class="info-panel">
+    <div class="brand">
+      <div class="brand-mark">⚡</div>
+      <div>
+        <div class="brand-name">SmartMeter</div>
+        <div class="brand-sub">ESP32 ENERGY MONITOR</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="info-tagline">
+        Up and running<br>in <span>3 steps.</span>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <h4>Create your account</h4>
+            <p>Register with your email to get access to your own private energy dashboard.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <h4>Connect your ESP32</h4>
+            <p>Configure your ESP32 to POST voltage &amp; current readings to <code>/api/energy/data</code> every few seconds.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <h4>Monitor &amp; predict</h4>
+            <p>View live stats, weekly analytics, threshold alerts, and ML-powered usage forecasts.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-badge">
+      <span class="sec-icon">🔒</span>
+      <div>
+        <strong>Secure &amp; local</strong>
+        <p>Your data stays on your own machine. Passwords are SHA-256 hashed. No third-party services or cloud storage.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doSignup(); });
+
+  function togglePw() {
+    const i = document.getElementById('password');
+    i.type = i.type === 'password' ? 'text' : 'password';
+  }
+
+  function checkStrength() {
+    const pw   = document.getElementById('password').value;
+    const fill = document.getElementById('strFill');
+    const lbl  = document.getElementById('strLbl');
+
+    let score = 0;
+    if (pw.length >= 6)         score++;
+    if (pw.length >= 10)        score++;
+    if (/[A-Z]/.test(pw))       score++;
+    if (/[0-9]/.test(pw))       score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+    const levels = [
+      { w: 0,   c: 'transparent', t: 'Enter a password' },
+      { w: 20,  c: '#ff4d6d',     t: 'Very weak' },
+      { w: 40,  c: '#f97316',     t: 'Weak' },
+      { w: 60,  c: '#f59e0b',     t: 'Fair' },
+      { w: 80,  c: '#84cc16',     t: 'Good' },
+      { w: 100, c: '#22c55e',     t: 'Strong ✓' },
+    ];
+
+    const l = levels[Math.min(score, 5)];
+    fill.style.width      = l.w + '%';
+    fill.style.background = l.c;
+    lbl.textContent       = pw ? l.t : 'Enter a password';
+    lbl.style.color       = pw ? l.c : 'var(--muted)';
+  }
+
+  async function doSignup() {
+    const btn   = document.getElementById('createBtn');
+    const name  = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const pw    = document.getElementById('password').value;
+    const ok    = document.getElementById('agree').checked;
+
+    hideAll();
+
+    if (!name || !email || !pw) { showErr('All fields are required.'); return; }
+    if (pw.length < 6)          { showErr('Password must be at least 6 characters.'); return; }
+    if (!ok)                    { showErr('Please agree to the terms to continue.'); return; }
+
+    btn.innerHTML = 'Creating account…<div class="spin"></div>';
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      const res  = await fetch('/auth/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password: pw })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showOk('Account created! Taking you to the dashboard…');
+        btn.innerHTML = '✓ Done!';
+        setTimeout(() => window.location.href = '/', 1200);
+      } else {
+        showErr(data.message || 'Signup failed.');
+      }
+    } catch {
+      showErr('Connection error — is the server running?');
+    } finally {
+      if (!document.getElementById('okBanner').classList.contains('show')) {
+        btn.innerHTML = 'Create Account<div class="spin"></div>';
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+  }
+
+  function showErr(m) { document.getElementById('errText').textContent = m; document.getElementById('errBanner').classList.add('show'); }
+  function showOk(m)  { document.getElementById('okText').textContent  = m; document.getElementById('okBanner').classList.add('show'); }
+  function hideAll()  { document.getElementById('errBanner').classList.remove('show'); document.getElementById('okBanner').classList.remove('show'); }
+</script>
+</body>
+</html>

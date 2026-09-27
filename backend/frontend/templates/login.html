@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Energy Meter — Login</title>
+  <link rel="stylesheet" href="/static/css/auth.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="auth-bg">
+    <div class="grid-overlay"></div>
+    <div class="auth-container">
+      <div class="auth-left">
+        <div class="brand">
+          <div class="brand-icon">⚡</div>
+          <div>
+            <h1>SmartMeter</h1>
+            <p>ESP32 Energy Monitoring System</p>
+          </div>
+        </div>
+        <div class="features">
+          <div class="feature-item"><span class="fi-dot green"></span>Real-time power monitoring</div>
+          <div class="feature-item"><span class="fi-dot blue"></span>Predictive analytics</div>
+          <div class="feature-item"><span class="fi-dot amber"></span>Smart alerts & notifications</div>
+          <div class="feature-item"><span class="fi-dot purple"></span>Historical trend analysis</div>
+        </div>
+        <div class="demo-hint">
+          <span class="dh-label">DEMO CREDENTIALS</span>
+          <code>demo@smartmeter.com</code>
+          <code>demo1234</code>
+        </div>
+      </div>
+
+      <div class="auth-card">
+        <h2>Welcome back</h2>
+        <p class="auth-sub">Sign in to your energy dashboard</p>
+
+        <div id="error-msg" class="error-banner" style="display:none"></div>
+
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <button class="btn-primary" id="loginBtn" onclick="doLogin()">
+          Sign In
+        </button>
+
+        <p class="auth-link">Don't have an account? <a href="/auth/signup">Create one</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+    async function doLogin() {
+      const btn = document.getElementById('loginBtn');
+      const errEl = document.getElementById('error-msg');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      errEl.style.display = 'none';
+      if (!email || !password) {
+        showError('Please enter your email and password.');
+        return;
+      }
+
+      btn.textContent = 'Signing in...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/auth/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = '/';
+        } else {
+          showError(data.message || 'Login failed.');
+        }
+      } catch {
+        showError('Connection error. Is the server running?');
+      } finally {
+        btn.textContent = 'Sign In';
+        btn.disabled = false;
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

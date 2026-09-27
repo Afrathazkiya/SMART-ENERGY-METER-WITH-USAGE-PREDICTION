@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Energy Meter — Dashboard</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+
+    <!-- ========= SIDEBAR ========= -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">⚡</div>
+        <div>
+          <div class="logo-name">SmartMeter</div>
+          <div class="logo-sub">ESP32 Monitor</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Monitor</div>
+        <a class="nav-link active" data-page="dashboard" onclick="navigate('dashboard',this)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2zm7 0h5v5H9zm-7 7h5v5H2zm7 0h5v5H9z"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-link" data-page="analytics" onclick="navigate('analytics',this)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1 1v14h14v-1.5H2.5V1H1zm3 9l2.5-3.5 2 2 2.5-4 1.5 1V12H4v-2z"/></svg>
+          Analytics
+        </a>
+        <a class="nav-link" data-page="predictions" onclick="navigate('predictions',this)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zm-.75 3.5v4.25l3.5 2 .75-1.25-3-1.75V6H7.25z"/></svg>
+          Predictions
+        </a>
+        <div class="nav-section-label">System</div>
+        <a class="nav-link" data-page="alerts" onclick="navigate('alerts',this)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a5 5 0 00-5 5v2.5l-1 1.5v.5h12v-.5l-1-1.5V6a5 5 0 00-5-5zm-1.5 11.5a1.5 1.5 0 003 0H6.5z"/></svg>
+          Alerts
+          <span class="nav-badge" id="alertBadge" style="display:none">0</span>
+        </a>
+        <a class="nav-link" data-page="settings" onclick="navigate('settings',this)">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7.5 1a6.5 6.5 0 100 13A6.5 6.5 0 007.5 1zM6 7.5a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"/></svg>
+          Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-device">
+        <div class="device-header">Device Status</div>
+        <div class="device-row"><span class="dot dot-green pulse-dot"></span> ESP32</div>
+        <div class="device-row"><span class="dot dot-green"></span> Flask API</div>
+        <div class="device-row" id="sensorStatusRow"><span class="dot dot-yellow"></span> Sensor: Simulated</div>
+        <div class="device-ip" id="deviceIP">192.168.1.105</div>
+      </div>
+
+      <a href="/auth/logout" class="sidebar-logout">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3v-1.5H3.5v-9H6V2zm5.25 3.25L13 8l-1.75 2.75-.25-1.75H7V7h4l.25-1.75z"/></svg>
+        Logout ({{ user.name }})
+      </a>
+    </aside>
+
+    <!-- ========= MAIN ========= -->
+    <main class="main-content">
+
+      <!-- ===== DASHBOARD PAGE ===== -->
+      <section class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-sub">Live overview of your energy system</p>
+          </div>
+          <div class="header-right">
+            <span class="badge badge-live" id="liveIndicator">● Live</span>
+            <span class="badge" id="alertLevelBadge">Normal</span>
+            <span class="clock" id="clock">--:--:--</span>
+          </div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card accent-green">
+            <div class="stat-label">Current Power</div>
+            <div class="stat-value green" id="currentPower">— W</div>
+            <div class="stat-meta">
+              <span id="currentVoltage">— V</span> &nbsp;·&nbsp; <span id="currentAmps">— A</span>
+            </div>
+          </div>
+          <div class="stat-card accent-blue">
+            <div class="stat-label">Today's Usage</div>
+            <div class="stat-value blue" id="todayKwh">— kWh</div>
+            <div class="stat-meta" id="todayChange">vs yesterday</div>
+          </div>
+          <div class="stat-card accent-amber">
+            <div class="stat-label">Estimated Cost</div>
+            <div class="stat-value amber" id="todayCost">₹—</div>
+            <div class="stat-meta" id="tariffInfo">₹6.50 / kWh</div>
+          </div>
+          <div class="stat-card accent-red">
+            <div class="stat-label">Alert Level</div>
+            <div class="stat-value red" id="alertLevel">—</div>
+            <div class="stat-meta" id="thresholdInfo">Threshold: 1000 W</div>
+          </div>
+        </div>
+
+        <div class="chart-row">
+          <div class="chart-card chart-wide">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">24-Hour Energy Consumption</div>
+                <div class="chart-sub">kWh per hour — last 24 hours</div>
+              </div>
+              <button class="export-btn" onclick="exportCSV()">↓ Export CSV</button>
+            </div>
+            <div class="chart-wrap" style="height:220px"><canvas id="last24Chart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="chart-row">
+          <div class="chart-card">
+            <div class="chart-title">Power Trend (Live)</div>
+            <div class="chart-sub">Watts — current session</div>
+            <div class="chart-wrap" style="height:200px"><canvas id="hourlyChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Load Breakdown</div>
+            <div class="chart-sub">Estimated distribution</div>
+            <div class="legend-row">
+              <span class="legend-dot" style="background:#22c55e"></span>Lighting 28%
+              <span class="legend-dot" style="background:#3b82f6;margin-left:12px"></span>AC 45%
+              <span class="legend-dot" style="background:#f59e0b;margin-left:12px"></span>Other 27%
+            </div>
+            <div class="chart-wrap" style="height:168px"><canvas id="pieChart"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ANALYTICS PAGE ===== -->
+      <section class="page" id="page-analytics">
+        <div class="page-header">
+          <div><h1 class="page-title">Analytics</h1><p class="page-sub">7-day predicted vs actual consumption</p></div>
+        </div>
+        <div class="stat-grid" id="analyticsStats">
+          <div class="stat-card accent-green"><div class="stat-label">Weekly Total</div><div class="stat-value green" id="total24h">—</div><div class="stat-meta">kWh this week</div></div>
+          <div class="stat-card accent-blue"><div class="stat-label">Daily Average</div><div class="stat-value blue" id="avg24h">—</div><div class="stat-meta">kWh per day</div></div>
+          <div class="stat-card accent-amber"><div class="stat-label">Weekly Cost</div><div class="stat-value amber" id="cost24h">—</div><div class="stat-meta">at current tariff</div></div>
+          <div class="stat-card accent-red"><div class="stat-label">Peak Day</div><div class="stat-value red" id="peakHour24h">—</div><div class="stat-meta">highest usage day</div></div>
+        </div>
+        <div class="chart-card" style="margin-bottom:16px">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Predicted vs Actual Consumption</div>
+              <div class="chart-sub">kWh — last 7 days with prediction overlay</div>
+            </div>
+            <div class="legend-row">
+              <span class="legend-dot" style="background:#3b82f6"></span>Actual
+              <span class="legend-dot" style="background:#f59e0b;margin-left:12px"></span>Predicted
+            </div>
+          </div>
+          <div class="chart-wrap" style="height:260px"><canvas id="analyticsChart"></canvas></div>
+        </div>
+
+      </section>
+
+      <!-- ===== PREDICTIONS PAGE ===== -->
+      <section class="page" id="page-predictions">
+        <div class="page-header">
+          <div><h1 class="page-title">Predictions</h1><p class="page-sub">Next-day energy forecast</p></div>
+          <button class="btn-primary-sm" onclick="loadPredictions()">Recalculate</button>
+        </div>
+        <div class="info-banner" id="predSummary">
+          <div class="ib-val" id="predTotal">— kWh</div>
+          <div class="ib-label">Predicted usage for tomorrow (Weighted Moving Average model)</div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-card chart-wide">
+            <div class="chart-title">Tomorrow's Hourly Forecast</div>
+            <div class="chart-sub">Predicted kWh per hour (0:00 – 23:00)</div>
+            <div class="chart-wrap" style="height:240px"><canvas id="predictChart"></canvas></div>
+          </div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-card">
+            <div class="chart-title">Model Explanation</div>
+            <div class="chart-sub">How predictions are calculated</div>
+            <div class="model-list">
+              <div class="model-item blue">
+                <div class="mi-icon">📐</div>
+                <div><div class="mi-title">Weighted Moving Average</div><div class="mi-sub">Today ×3, Yesterday ×2, 2 days ago ×1 — recency bias</div></div>
+              </div>
+              <div class="model-item green">
+                <div class="mi-icon">🕐</div>
+                <div><div class="mi-title">Time-of-Day Aware</div><div class="mi-sub">Each hour predicted from same-hour history, not adjacent hours</div></div>
+              </div>
+              <div class="model-item amber">
+                <div class="mi-icon">📊</div>
+                <div><div class="mi-title">Anomaly Detection</div><div class="mi-sub">&gt;50% deviation from prediction triggers high alert</div></div>
+              </div>
+              <div class="model-item purple">
+                <div class="mi-icon">📉</div>
+                <div><div class="mi-title">MAE Tracking</div><div class="mi-sub">Mean Absolute Error computed daily to measure accuracy</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Prediction Accuracy (MAE)</div>
+            <div class="chart-sub">Lower is better — kWh error per day</div>
+            <div class="chart-wrap" style="height:180px"><canvas id="accuracyChart"></canvas></div>
+            <div id="noAccuracyData" style="display:none;text-align:center;color:#7d8590;font-size:12px;margin-top:16px">Accuracy data builds up after 2+ days of use.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ALERTS PAGE ===== -->
+      <section class="page" id="page-alerts">
+        <div class="page-header">
+          <div><h1 class="page-title">Alerts</h1><p class="page-sub">Threshold violations and anomalies</p></div>
+          <button class="btn-primary-sm" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="alert-filters">
+          <button class="filter-btn active" onclick="filterAlerts('all',this)">All</button>
+          <button class="filter-btn" onclick="filterAlerts('high',this)">High</button>
+          <button class="filter-btn" onclick="filterAlerts('medium',this)">Medium</button>
+          <button class="filter-btn" onclick="filterAlerts('low',this)">Low</button>
+        </div>
+        <div id="alertsList"></div>
+      </section>
+
+      <!-- ===== SETTINGS PAGE ===== -->
+      <section class="page" id="page-settings">
+        <div class="page-header">
+          <div><h1 class="page-title">Settings</h1><p class="page-sub">Configure thresholds and device</p></div>
+        </div>
+        <div class="settings-grid">
+          <div class="chart-card">
+            <div class="chart-title">Alert Thresholds</div>
+            <div class="chart-sub">Customize when alerts are triggered</div>
+            <div class="settings-form" id="settingsForm">
+              <div class="sf-group">
+                <label>Power Spike Threshold (W)</label>
+                <div class="sf-slider-row">
+                  <input type="range" id="sPowerThresh" min="200" max="3000" step="50" value="1000" oninput="updateSliderLabel('sPowerThresh','sPowerLabel')">
+                  <span class="sf-val" id="sPowerLabel">1000 W</span>
+                </div>
+              </div>
+              <div class="sf-group">
+                <label>Daily Usage Limit (kWh)</label>
+                <div class="sf-slider-row">
+                  <input type="range" id="sDailyLimit" min="1" max="20" step="0.5" value="5" oninput="updateSliderLabel('sDailyLimit','sDailyLabel','kWh',true)">
+                  <span class="sf-val" id="sDailyLabel">5.0 kWh</span>
+                </div>
+              </div>
+              <div class="sf-group">
+                <label>Electricity Tariff (₹/kWh)</label>
+                <div class="sf-slider-row">
+                  <input type="range" id="sTariff" min="2" max="15" step="0.5" value="6.5" oninput="updateSliderLabel('sTariff','sTariffLabel','₹',false,true)">
+                  <span class="sf-val" id="sTariffLabel">₹6.50</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">ESP32 Device Configuration</div>
+            <div class="chart-sub">Hardware connection settings</div>
+            <div class="settings-form">
+              <div class="sf-group">
+                <label>Device IP Address</label>
+                <input type="text" class="sf-input" id="sDeviceIP" value="192.168.1.105" placeholder="192.168.x.x">
+              </div>
+              <div class="sf-group">
+                <label>Poll Interval (seconds)</label>
+                <select class="sf-input" id="sPollInterval">
+                  <option value="5">5 seconds</option>
+                  <option value="10">10 seconds</option>
+                  <option value="30">30 seconds</option>
+                  <option value="60">1 minute</option>
+                </select>
+              </div>
+              <div class="sf-group">
+                <label>Alert Email</label>
+                <input type="email" class="sf-input" id="sAlertEmail" placeholder="your@email.com">
+              </div>
+              <div class="sf-check">
+                <input type="checkbox" id="sEmailAlerts" checked>
+                <label for="sEmailAlerts">Send email alerts for high-level events</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:right;margin-top:16px">
+          <button class="btn-primary-sm" onclick="saveSettings()">Save Settings</button>
+          <span id="settingsSaved" style="display:none;margin-left:12px;color:#22c55e;font-size:13px">✓ Saved</span>
+        </div>
+        <div class="chart-card" style="margin-top:16px">
+          <div class="chart-title">Data Management</div>
+          <div class="chart-sub">Export your energy data</div>
+          <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+            <button class="export-btn" onclick="exportCSV(7)">↓ Export Last 7 Days</button>
+            <button class="export-btn" onclick="exportCSV(30)">↓ Export Last 30 Days</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

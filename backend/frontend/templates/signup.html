@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Energy Meter — Sign Up</title>
+  <link rel="stylesheet" href="/static/css/auth.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="auth-bg">
+    <div class="grid-overlay"></div>
+    <div class="auth-container">
+      <div class="auth-left">
+        <div class="brand">
+          <div class="brand-icon">⚡</div>
+          <div>
+            <h1>SmartMeter</h1>
+            <p>ESP32 Energy Monitoring System</p>
+          </div>
+        </div>
+        <div class="features">
+          <div class="feature-item"><span class="fi-dot green"></span>Real-time power monitoring</div>
+          <div class="feature-item"><span class="fi-dot blue"></span>Predictive analytics</div>
+          <div class="feature-item"><span class="fi-dot amber"></span>Smart alerts & notifications</div>
+          <div class="feature-item"><span class="fi-dot purple"></span>Historical trend analysis</div>
+        </div>
+      </div>
+
+      <div class="auth-card">
+        <h2>Create account</h2>
+        <p class="auth-sub">Start monitoring your energy usage</p>
+
+        <div id="error-msg" class="error-banner" style="display:none"></div>
+        <div id="success-msg" class="success-banner" style="display:none"></div>
+
+        <div class="form-group">
+          <label for="name">Full name</label>
+          <input type="text" id="name" placeholder="Your Name" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="password">Password <span style="color:#7d8590;font-weight:400;font-size:12px">(min 6 chars)</span></label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+
+        <button class="btn-primary" id="signupBtn" onclick="doSignup()">Create Account</button>
+
+        <p class="auth-link">Already have an account? <a href="/auth/login">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doSignup(); });
+
+    async function doSignup() {
+      const btn = document.getElementById('signupBtn');
+      const errEl = document.getElementById('error-msg');
+      const okEl = document.getElementById('success-msg');
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      errEl.style.display = 'none';
+      okEl.style.display = 'none';
+
+      if (!name || !email || !password) {
+        showError('All fields are required.');
+        return;
+      }
+
+      btn.textContent = 'Creating...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/auth/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          okEl.textContent = 'Account created! Redirecting...';
+          okEl.style.display = 'block';
+          setTimeout(() => window.location.href = '/', 1000);
+        } else {
+          showError(data.message || 'Signup failed.');
+        }
+      } catch {
+        showError('Connection error. Is the server running?');
+      } finally {
+        btn.textContent = 'Create Account';
+        btn.disabled = false;
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
